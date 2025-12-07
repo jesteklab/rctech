@@ -49,17 +49,42 @@
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       pointer-events: none; z-index: -1;
       background: #020205;
+      overflow: hidden;
     }
     .star {
       position: absolute;
       width: 2px; height: 2px;
-      background: white;
       opacity: 0.8;
-      animation: twinkle var(--duration) infinite ease-in-out;
+      box-shadow: 0 0 2px rgba(255,255,255,0.8);
+      /* Initial state off-screen bottom-left approx */
+      bottom: 0; left: 0;
     }
-    @keyframes twinkle {
-      0%, 100% { opacity: 0.3; transform: scale(1); }
-      50% { opacity: 1; transform: scale(1.5); box-shadow: 0 0 4px white; }
+
+    /* Shooting star animation: Move from bottom-left to top-right */
+    @keyframes shooting {
+      0% {
+        transform: translate(0, 0) scale(1);
+        opacity: 0;
+      }
+      10% {
+        opacity: 1;
+      }
+      90% {
+        opacity: 1;
+      }
+      100% {
+        /* Move far top-right */
+        transform: translate(120vw, -120vh) scale(1); 
+        opacity: 0;
+      }
+    }
+
+    /* Blinking animation for static-ish stars if desired, 
+       but for shooting effect we mainly use movement. 
+       Let's add a slow pulse to them as they travel. */
+    @keyframes pulse {
+      0%, 100% { opacity: 0.4; }
+      50% { opacity: 1; box-shadow: 0 0 6px currentColor; }
     }
 
     /* --- TYPOGRAPHY --- */
@@ -563,17 +588,40 @@
 
     // Generate Stars Script
     const starContainer = document.getElementById('starContainer');
-    const starCount = 100;
+    const starCount = 300; // INCREASED DENSITY
+    
+    // Colorful palette from your reference image
+    const colors = ['#00FFFF', '#FF00FF', '#FFFF00', '#00FF00', '#FFFFFF'];
 
     for (let i = 0; i < starCount; i++) {
       const star = document.createElement('div');
       star.classList.add('star');
-      // Random position
-      star.style.left = Math.random() * 100 + 'vw';
-      star.style.top = Math.random() * 100 + 'vh';
+      
+      // Random starting position roughly across the bottom-left area mostly, 
+      // but let's spread them a bit so they don't all look like they come from one point.
+      // To simulate "shooting across screen", we start them off-screen left or bottom.
+      
+      // Random start positions
+      const startX = Math.random() * 100 - 50; // -50vw to 50vw
+      const startY = Math.random() * 100 + 50; // 50vh to 150vh (below screen)
+      
+      star.style.left = startX + 'vw';
+      star.style.top = startY + 'vh';
+      
+      // Random tail length via scale
+      const scale = Math.random() * 1 + 0.5;
+      
+      // Random Color
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      star.style.background = color;
+      star.style.boxShadow = `0 0 ${4 + Math.random() * 4}px ${color}`;
+      
       // Random animation duration
-      const duration = Math.random() * 3 + 2; // 2 to 5 seconds
-      star.style.setProperty('--duration', duration + 's');
+      const duration = Math.random() * 3 + 2; // 2s to 5s
+      const delay = Math.random() * 5; // Start at different times
+      
+      star.style.animation = `shooting ${duration}s linear ${delay}s infinite, pulse ${duration/2}s ease-in-out infinite`;
+      
       starContainer.appendChild(star);
     }
   </script>
